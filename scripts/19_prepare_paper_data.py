@@ -39,6 +39,15 @@ CONTROL = [
     "brokenarxiv-0326", "brokenarxiv-0626",
 ]
 
+# A control set is only valid against a corpus it postdates, so it is defined per
+# corpus. Nemotron-SFT-Math-v4 was released 2026-05-01, which puts AIME 2026 and
+# the Jan-Mar arXiv sets inside its window; only June 2026 onward can serve.
+CONTROL_POST_MAY_2026 = [
+    "arxivmath-0626", "arxivmath-0826",
+    "brokenarxiv-0626", "brokenarxiv-0826",
+    "arxivlean-0626",
+]
+
 
 def pull_olymmath() -> None:
     from datasets import load_dataset
@@ -139,11 +148,64 @@ def pull_dolci(target: int) -> None:
     _log.info("Dolci: %d rows -> %s", n, out)
 
 
+def pull_nemotron(target: int) -> None:
+    """Stream Nemotron-SFT-Math-v4. Its `problem` field is already the question.
+
+    Released 2026-05-01 with decontamination described in prose only, so it enters
+    the comparison as a third corpus and a second prose-derived case.
+    """
+    from datasets import load_dataset
+    out = RAW / "nemotron_questions.jsonl"
+    seen: set[str] = set()
+    if out.exists():
+        for line in out.open(encoding="utf-8"):
+            try:
+                seen.add(json.loads(line)["train_id"])
+            except Exception:  # noqa: BLE001
+                pass
+        _log.info("resuming with %d rows already on disk", len(seen))
+
+    n = len(seen)
+    with out.open("a", encoding="utf-8") as f:
+        for attempt in range(30):
+            if n >= target:
+                break
+            try:
+                ds = load_dataset("nvidia/Nemotron-SFT-Math-v4", split="train",
+                                  streaming=True)
+                if n:
+                    ds = ds.skip(n)
+                for row in ds:
+                    rid = row.get("uuid")
+                    if rid in seen:
+                        continue
+                    q = row.get("problem") or ""
+                    if not q.strip():
+                        continue
+                    seen.add(rid)
+                    f.write(json.dumps({"train_id": rid, "problem": q,
+                                        "source": row.get("source")}) + "\n")
+                    n += 1
+                    if n % 25_000 == 0:
+                        f.flush()
+                        _log.info("  %d rows", n)
+                    if n >= target:
+                        break
+            except Exception as e:  # noqa: BLE001
+                _log.warning("  stream dropped (%s), retry %d",
+                             type(e).__name__, attempt + 1)
+                time.sleep(5)
+    _log.info("Nemotron: %d rows -> %s", n, out)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--corpus-rows", type=int, default=390_000,
                     help="the paper's largest scaling point")
     ap.add_argument("--skip-corpus", action="store_true")
+    ap.add_argument("--nemotron", action="store_true",
+                    help="also fetch the Nemotron corpus and its later control set")
+    ap.add_argument("--skip-nemotron-corpus", action="store_true")
     args = ap.parse_args()
     configure_logging()
     RAW.mkdir(parents=True, exist_ok=True)
@@ -154,8 +216,15 @@ def main() -> None:
     _log.info("control set (competitions Jan 2026 onward):")
     pull_matharena(CONTROL, "control", RAW / "bench_control.jsonl")
 
+    if args.nemotron:
+        _log.info("control set valid against a May 2026 corpus (June 2026 onward):")
+        pull_matharena(CONTROL_POST_MAY_2026, "control_post_may26",
+                       RAW / "bench_control_post_may26.jsonl")
+
     if not args.skip_corpus:
         pull_dolci(args.corpus_rows)
+    if args.nemotron and not args.skip_nemotron_corpus:
+        pull_nemotron(100_000)
 
 
 if __name__ == "__main__":

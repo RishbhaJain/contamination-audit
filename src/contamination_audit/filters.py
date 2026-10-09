@@ -165,3 +165,47 @@ def registry(include_partial: bool = False) -> list[DecontaminationFilter]:
         ),
     ]
     return all_filters if include_partial else [f for f in all_filters if f.faithful]
+
+
+def flag_by_sampled_phrases(corpus: list[str], bench: list[str], n: int = 8,
+                            n_phrases: int = 20, frac: float = 0.5,
+                            tokenize: Callable = tok_s1,
+                            exhaustive: bool = False) -> set[int]:
+    """Rufus-Air style: require a fraction of an item's phrases to be present.
+
+    Rather than firing on any single shared n-gram, this samples roughly
+    `n_phrases` evenly spaced n-grams per benchmark item and flags the item only
+    when at least `frac` of them appear somewhere in the corpus. Requiring
+    agreement across spans spread through the item is meant to suppress the
+    single-stock-phrase match that drives the false positives in this paper.
+
+    `exhaustive=True` uses every n-gram instead of a sample, the variant reported
+    for mathematics.
+    """
+    # phrase -> set of (item index, phrase index)
+    lookup: dict[tuple, set[tuple[int, int]]] = {}
+    n_sampled: list[int] = []
+    for j, text in enumerate(bench):
+        grams = sorted(ngrams(tokenize(text), n))
+        if not grams:
+            n_sampled.append(0)
+            continue
+        if exhaustive or len(grams) <= n_phrases:
+            picked = grams
+        else:
+            step = len(grams) / n_phrases
+            picked = [grams[int(i * step)] for i in range(n_phrases)]
+        n_sampled.append(len(picked))
+        for k, g in enumerate(picked):
+            lookup.setdefault(g, set()).add((j, k))
+
+    seen: dict[int, set[int]] = {}
+    for text in corpus:
+        if not text.strip():
+            continue
+        for g in ngrams(tokenize(text), n):
+            for j, k in lookup.get(g, ()):
+                seen.setdefault(j, set()).add(k)
+
+    return {j for j, ks in seen.items()
+            if n_sampled[j] and len(ks) / n_sampled[j] >= frac}

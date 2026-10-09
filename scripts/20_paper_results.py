@@ -454,16 +454,17 @@ def stage_composition(qwen):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--stage", choices=["main", "consensus", "scaling", "tuning",
-                                        "mechanism", "composition", "validate", "second"])
+                                        "mechanism", "composition", "validate", "second", "matched", "nemotron"])
     args = ap.parse_args()
     configure_logging()
 
-    needs_qwen = args.stage in (None, "main", "scaling", "tuning", "composition", "second")
+    needs_qwen = args.stage in (None, "main", "scaling", "tuning", "composition",
+                                "second", "matched", "nemotron")
     qwen = _hf_tokenizer("Qwen/Qwen2-7B-Instruct") if needs_qwen else None
 
     stages = [args.stage] if args.stage else [
         "main", "consensus", "scaling", "tuning", "mechanism", "composition",
-        "validate", "second"]
+        "validate", "second", "matched", "nemotron"]
     for s in stages:
         if s == "main":
             stage_main(qwen)
@@ -481,7 +482,93 @@ def main():
             stage_validate()
         elif s == "second":
             stage_second(qwen)
+        elif s == "matched":
+            stage_matched(qwen)
+        elif s == "nemotron":
+            stage_nemotron(qwen)
 
+
+
+
+def stage_matched(qwen):
+    """Matched same-competition comparison (Sec. matched).
+
+    The estimated false-discovery share assumes the measurement and control groups
+    attract spurious matches at comparable rates. That is testable directly: AIME
+    2025 and AIME 2026 are the same competition one year apart, written to the same
+    conventions, and only one of them can be in the corpus. If both flag at similar
+    rates, most of what is flagged on the measurement side is boilerplate too.
+    """
+    c = corpus(MAIN_N)
+    pairs = [("aime_2025", "aime_2026"), ("hmmt_feb_2025", "hmmt_feb_2026")]
+    allm = load_jsonl("data/raw/bench_measure.jsonl")
+    allc = load_jsonl("data/raw/bench_control.jsonl")
+    by_name = {}
+    for r in allm + allc:
+        by_name.setdefault(r["benchmark"], []).append(r["problem"])
+
+    out = {}
+    print("\nMatched same-competition comparison (100k Dolci documents)")
+    print(f"{'competition':18s} {'n':>4} {'s1':>8} {'OT3':>8}")
+    for older, newer in pairs:
+        for nm in (older, newer):
+            texts = by_name.get(nm, [])
+            if not texts:
+                print(f"  {nm}: NOT FOUND")
+                continue
+            s1 = len(flag_by_ngram(c, texts, 8, tok_s1)) / len(texts)
+            o3 = len(flag_by_ngram(c, texts, 13, qwen)) / len(texts)
+            side = "measure" if nm == older else "control"
+            out[nm] = {"n": len(texts), "s1": 100 * s1, "ot3": 100 * o3, "side": side}
+            print(f"  {nm:16s} {len(texts):4d} {100*s1:7.1f}% {100*o3:7.1f}%   ({side})")
+    save("matched", out)
+
+
+
+# Benchmarks released before Nemotron-SFT-Math-v4 (2026-05-01) but after Dolci.
+# They are controls for Dolci and measurement candidates for Nemotron: the control
+# set is a function of the corpus, not a fixed list.
+PRE_MAY_2026 = {"aime_2026", "hmmt_feb_2026", "usamo_2026",
+                "arxivmath-0126", "arxivmath-0326", "brokenarxiv-0326"}
+
+
+def stage_nemotron(qwen):
+    """Third corpus: Nemotron-SFT-Math-v4, released 2026-05-01.
+
+    Its release date sits between the two groups used for Dolci, so the split is
+    recomputed rather than reused. Everything published before May 2026 could be
+    inside it and becomes measurement; only June 2026 onward can serve as control.
+    """
+    rows = []
+    with open("data/raw/nemotron_questions.jsonl", encoding="utf-8") as f:
+        for i, line in enumerate(f):
+            if i >= MAIN_N:
+                break
+            rows.append(json.loads(line)["problem"])
+
+    measure_dolci, control_dolci = benchmarks()
+    early26 = [r for r in control_dolci if r.get("benchmark") in PRE_MAY_2026]
+    measure = measure_dolci + early26
+    control = load_jsonl("data/raw/bench_control_post_may26.jsonl")
+
+    mt = [r["problem"] for r in measure]
+    ct = [r["problem"] for r in control]
+    print(f"\nThird corpus: Nemotron-SFT-Math-v4 ({len(rows)} docs, released 2026-05-01)")
+    print(f"  measurement (published before May 2026): {len(mt)} items")
+    print(f"    = {len(measure_dolci)} from the Dolci measurement set "
+          f"+ {len(early26)} early-2026 sets that postdate Dolci but not Nemotron")
+    print(f"  control (June 2026 onward): {len(ct)} items")
+    print(f"\n{'filter':24s} {'detection':>12s} {'false positive':>16s}")
+    out = {}
+    for name, prov, fn in filters(qwen):
+        m, k = fn(rows, mt), fn(rows, ct)
+        fpr = 100 * len(k) / len(ct)
+        det = 100 * len(m) / len(mt)
+        out[name] = {"detect": det, "fp": fpr, "n_detect": len(m), "n_fp": len(k),
+                     "fd_share": (fpr / det) if det else None}
+        print(f"{name:24s} {len(m):5d} ({det:5.1f}%) {len(k):7d} ({fpr:5.1f}%)")
+    save("nemotron", {"corpus": "Nemotron-SFT-Math-v4", "docs": len(rows),
+                      "n_measure": len(mt), "n_control": len(ct), "filters": out})
 
 if __name__ == "__main__":
     main()

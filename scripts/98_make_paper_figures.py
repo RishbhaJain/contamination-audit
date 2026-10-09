@@ -2,7 +2,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-BLUE, ORANGE, AQUA = '#2a78d6', '#eb6834', '#1baf7a'
+BLUE, ORANGE, AQUA, YELLOW = '#2a78d6', '#eb6834', '#1baf7a', '#eda100'
 INK, MUTED, GRID = '#0b0b0b', '#898781', '#e1e0d9'
 
 plt.rcParams.update({
@@ -66,11 +66,16 @@ qwen_d = [99.8, 86.3, 62.0, 27.5, 14.3, 4.2, 1.2, 0.4]
 qwen_f = [99.6, 68.2, 36.4, 11.1, 6.8, 2.5, 0.4, 0.0]
 fz_d   = [0, 0, 0, 0, 0.8, 2.8, 6.2, 15.3]
 fz_f   = [0, 0, 0, 0, 0, 0, 0.7, 4.6]
+# Rufus-Air: 20 sampled 8-gram phrases, sweeping the required fraction
+ra_d   = [0.0, 0.4, 1.4, 7.2, 16.9]
+ra_f   = [0.0, 0.0, 0.4, 3.9, 8.2]
 
 fig2, ax = plt.subplots(figsize=(3.3, 3.0))
 ax.plot(word_f, word_d, '-o', color=BLUE, lw=1.6, ms=3.5, label='$n$-gram, whitespace')
 ax.plot(qwen_f, qwen_d, '-s', color=ORANGE, lw=1.6, ms=3.5, label='$n$-gram, Qwen2 tokens')
 ax.plot(fz_f, fz_d, '-^', color=AQUA, lw=1.9, ms=4.5, label='fuzz.ratio (whole string)')
+ax.plot(ra_f, ra_d, '-D', color=YELLOW, lw=1.6, ms=3.5,
+        label='phrase agreement ($\geq$ frac of 20)')
 
 ax.plot(12.9, 25.3, 'o', mfc='none', mec=BLUE, ms=10, mew=1.4)
 ax.plot(11.1, 27.5, 's', mfc='none', mec=ORANGE, ms=10, mew=1.4)

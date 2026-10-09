@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<!-- saved from url=(0079)file:///C:/Users/arnod/Downloads/Decontamination%20Paper%20ACL%20Checklist.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Decontamination Paper ACL Checklist</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+<link rel="stylesheet" href="./Decontamination Paper ACL Checklist_files/css2">
+<style>
+/* Layout: one reading column; header with countdown + progress, then phases in deadline order, each a checklist. */
+:root {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --fg: #1b2230;
+  --muted: #5d6779;
+  --line: #dde1e8;
+  --accent: #1f5fa8;
+  --accent-soft: #e3ecf8;
+  --block: #b4372f;
+  --block-soft: #f8e5e3;
+  --opt: #6b6f2a;
+  --opt-soft: #eff0dc;
+  --done: #8a93a3;
+  --font-display: "IBM Plex Sans Condensed", "Arial Narrow", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12161d; --surface: #1a2029; --fg: #e4e8ef; --muted: #9aa4b5; --line: #2c3442;
+    --accent: #7fb0ec; --accent-soft: #1d2d44; --block: #ef8a80; --block-soft: #3a2220;
+    --opt: #c9cd85; --opt-soft: #2e301c; --done: #6b7384; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12161d; --surface: #1a2029; --fg: #e4e8ef; --muted: #9aa4b5; --line: #2c3442;
+  --accent: #7fb0ec; --accent-soft: #1d2d44; --block: #ef8a80; --block-soft: #3a2220;
+  --opt: #c9cd85; --opt-soft: #2e301c; --done: #6b7384; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.5; }
+.wrap { max-width: 760px; margin: 0 auto; padding-inline: 16px; padding-block: 28px 56px; display: flex; flex-direction: column; gap: 28px; }
+header { display: flex; flex-direction: column; gap: 14px; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--font-display); font-weight: 600; font-size: clamp(26px, 5vw, 34px); line-height: 1.15; margin: 0; text-wrap: balance; }
+.sub { color: var(--muted); margin: 0; max-width: 62ch; }
+.stats { display: flex; flex-wrap: wrap; gap: 10px 28px; align-items: baseline; }
+.stat { display: flex; flex-direction: column; }
+.stat b { font-family: var(--font-display); font-size: 24px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.stat span { font-size: 12px; color: var(--muted); }
+.bar { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
+.bar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .25s ease; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; font-size: 13px; color: var(--muted); }
+.controls label { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
+.controls button { font: inherit; font-size: 13px; color: var(--muted); background: none; border: 1px solid var(--line); border-radius: 6px; padding: 3px 10px; cursor: pointer; }
+.controls button:hover { color: var(--fg); border-color: var(--muted); }
+section { display: flex; flex-direction: column; gap: 10px; }
+.phase-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 12px; border-bottom: 1px solid var(--line); padding-bottom: 6px; }
+h2 { font-family: var(--font-display); font-weight: 600; font-size: 19px; margin: 0; }
+.when { font-family: var(--font-mono); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.phase-note { margin: 0; color: var(--muted); font-size: 14px; max-width: 65ch; }
+ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+li { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; padding: 9px 10px; border-radius: 8px; }
+li:hover { background: var(--surface); }
+li input { margin: 3px 0 0; width: 17px; height: 17px; accent-color: var(--accent); cursor: pointer; }
+li input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.item { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.item label { font-weight: 500; cursor: pointer; }
+.item p { margin: 0; color: var(--muted); font-size: 14px; max-width: 65ch; }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
+.tag { font-family: var(--font-mono); font-size: 11.5px; padding: 1px 7px; border-radius: 4px; background: var(--accent-soft); color: var(--accent); }
+.tag.block { background: var(--block-soft); color: var(--block); }
+.tag.opt { background: var(--opt-soft); color: var(--opt); }
+li.done label { color: var(--done); text-decoration: line-through; text-decoration-color: var(--done); }
+li.done p, li.done .tags { opacity: .55; }
+body.hide-done li.done { display: none; }
+footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 14px; }
+@media (prefers-reduced-motion: reduce) { .bar i { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">ARR submission · target Oct 12, 2026</div>
+    <h1>Decontaminated by Whose Standard? — ACL checklist</h1>
+    <p class="sub">Everything from the review, ordered so the blocking fixes land first. Ticks are saved in this browser only.</p>
+    <div class="stats">
+      <div class="stat"><b id="days">6.7</b><span id="days-label">days to Oct 12, 23:59 AoE</span></div>
+      <div class="stat"><b id="count">0 / 42</b><span>tasks done</span></div>
+      <div class="stat"><b id="blocking">27</b><span>blocking left</span></div>
+    </div>
+    <div class="bar" aria-hidden="true"><i id="bar" style="width: 0%;"></i></div>
+    <div class="controls">
+      <label for="hide"><input type="checkbox" id="hide"> Hide finished</label>
+      <button type="button" id="reset">Clear all ticks</button>
+      <span id="reset-confirm" hidden="">Clear every tick? <button type="button" id="reset-yes">Yes, clear</button> <button type="button" id="reset-no">Keep</button></span>
+    </div>
+  </header>
+
+  <main id="phases"><div style="display: flex; flex-direction: column; gap: 28px;"><section><div class="phase-head"><h2>Do today</h2><span class="when">Tue Oct 6</span></div><p class="phase-note">Admin that can stall a submission if left late.</p><ul><li data-id="p0a" data-blocking="1"><input type="checkbox" id="cb-p0a"><div class="item"><label for="cb-p0a">Confirm the exact ARR deadline, time zone and page limit</label><p>Check the current ARR cycle page; make sure ACL is the venue it feeds.</p><div class="tags"><span class="tag block">Blocking</span></div></div></li><li data-id="p0b" data-blocking="1"><input type="checkbox" id="cb-p0b"><div class="item"><label for="cb-p0b">Make sure every author has an active OpenReview profile</label><p>New profiles without an institutional email can sit in moderation for days.</p><div class="tags"><span class="tag block">Blocking</span></div></div></li></ul></section><section><div class="phase-head"><h2>Fix the numbers</h2><span class="when">Tue–Wed</span></div><p class="phase-note">Reviewers will catch these. Do them before any new experiments.</p><ul><li data-id="p1a" data-blocking="1"><input type="checkbox" id="cb-p1a"><div class="item"><label for="cb-p1a">Reconcile Table 2 with Table 3 and §11</label><p>n≥8: Table 2 gives 91/25 items, s1 flags 127/36. n≥10: 5.8%/3.2% vs 7.2%/3.9% in §11. n=13: Table 2 implies ~0.26, §11 says 0.51. Find the stale pipeline or state the tokenization difference.</p><div class="tags"><span class="tag block">Blocking</span><span class="tag">Table 2</span><span class="tag">§11</span></div></div></li><li data-id="p1b" data-blocking="1"><input type="checkbox" id="cb-p1b"><div class="item"><label for="cb-p1b">Define two metrics and use them everywhere</label><p>FPR = control flags ÷ control items. Estimated false-discovery share = control rate ÷ measurement rate. Replace loose uses of “error”.</p><div class="tags"><span class="tag block">Blocking</span></div></div></li><li data-id="p1c" data-blocking="1"><input type="checkbox" id="cb-p1c"><div class="item"><label for="cb-p1c">Rewrite the headline claim</label><p>12.9% / 11.1% is the control FPR, not the share of output that is wrong (~half). Fix abstract, §6, conclusion.</p><div class="tags"><span class="tag block">Blocking</span><span class="tag">Abstract</span><span class="tag">§6</span><span class="tag">§16</span></div></div></li><li data-id="p1d" data-blocking="1"><input type="checkbox" id="cb-p1d"><div class="item"><label for="cb-p1d">Fix “the two filters that detect anything”</label><p>Tülu 3 flags 6 items. Say “the two filters that flag more than a handful”.</p><div class="tags"><span class="tag block">Blocking</span><span class="tag">Abstract</span><span class="tag">§16</span></div></div></li><li data-id="p1e" data-blocking="1"><input type="checkbox" id="cb-p1e"><div class="item"><label for="cb-p1e">Change “provably wrong” to “estimated” for measurement-set errors</label><p>Only control flags are provably wrong.</p><div class="tags"><span class="tag block">Blocking</span><span class="tag">Fig. 1</span><span class="tag">§8</span></div></div></li><li data-id="p1f" data-blocking="1"><input type="checkbox" id="cb-p1f"><div class="item"><label for="cb-p1f">Verify which filter Ai2 applied to Dolci SFT</label><p>The Olmo 3 paper describes decon for midtraining data. Fix the Table 1 label if Dolci SFT used another tool.</p><div class="tags"><span class="tag block">Blocking</span><span class="tag">Table 1</span></div></div></li></ul></section><section><div class="phase-head"><h2>New corpus and newer filters</h2><span class="when">Tue–Fri</span></div><p class="phase-note">The biggest jobs. Start the implementations in parallel with Phase 1 so runs can go overnight.</p><ul><li data-id="pn1" data-blocking="1"><input type="checkbox" id="cb-pn1"><div class="item"><label for="cb-pn1">Get Nemotron 3 Nano post-training data and take a 100k sample</label><p>Nemotron-Post-Training-v3 collection. Post-training cutoff Nov 28, 2025, so the existing 280-item 2026 control set applies unchanged. Record the sampling method and seed.</p><div class="tags"><span class="tag block">Blocking</span><span class="tag">§5</span><span class="tag">§9</span></div></div></li><li data-id="pn2" data-blocking="1"><input type="checkbox" id="cb-pn2"><div class="item"><label for="cb-pn2">Check whether NVIDIA released its own decontamination code</label><p>If it did, run it as-is like the other released filters. If not, implement it from the description and mark it prose-derived, as you did for Tülu 3.</p><div class="tags"><span class="tag block">Blocking</span><span class="tag">Table 1</span></div></div></li><li data-id="pn3" data-blocking="1"><input type="checkbox" id="cb-pn3"><div class="item"><label for="cb-pn3">Implement the Rufus-Air 2026 filter</label><p>Word-level 8-grams, ~20 evenly spaced phrases per benchmark item, matched against lowercased text, flag at ≥50% of an item’s phrases. Also its exhaustive 8-gram variant for math.</p><div class="tags"><span class="tag block">Blocking</span><span class="tag">§3</span></div></div></li><li data-id="pn4" data-blocking="1"><input type="checkbox" id="cb-pn4"><div class="item"><label for="cb-pn4">Implement an embedding-similarity filter</label><p>Follow Nemotron’s approach (Qwen3-Embedding-0.6B, cosine similarity to benchmark items). Sweep the threshold against the temporal control to get its precision/recall curve.</p><div class="tags"><span class="tag block">Blocking</span><span class="tag">§3</span><span class="tag">§11</span></div></div></li><li data-id="pn5" data-blocking="1"><input type="checkbox" id="cb-pn5"><div class="item"><label for="cb-pn5">Implement an LLM-judge filter</label><p>LMSYS llm-decontaminator style: embedding top-k candidates, then an LLM decides. Budget API cost by judging candidates only. Fix the judge model and prompt for reproducibility.</p><div class="tags"><span class="tag block">Blocking</span><span class="tag">§3</span></div></div></li><li data-id="pn6" data-blocking="1"><input type="checkbox" id="cb-pn6"><div class="item"><label for="cb-pn6">Run every filter on all three corpora</label><p>Dolci, Tülu 3 math and Nemotron 3, against the measurement and control sets. Same 100k samples and bootstrap settings as the existing results.</p><div class="tags"><span class="tag block">Blocking</span><span class="tag">Table 3</span><span class="tag">Table 4</span></div></div></li><li data-id="pn7" data-blocking="1"><input type="checkbox" id="cb-pn7"><div class="item"><label for="cb-pn7">Inspect the new filters’ control-set flags</label><p>Check whether embedding and LLM false positives also trace to stock competition phrasing, or to something new. Extend §10 with what you find.</p><div class="tags"><span class="tag block">Blocking</span><span class="tag">§10</span></div></div></li><li data-id="pn8" data-blocking="1"><input type="checkbox" id="cb-pn8"><div class="item"><label for="cb-pn8">Add the new filters to Fig. 2</label><p>Plot embedding and LLM-judge operating points on the same precision/recall frontier, with each project’s shipped default ringed.</p><div class="tags"><span class="tag block">Blocking</span><span class="tag">Fig. 2</span></div></div></li></ul></section><section><div class="phase-head"><h2>Strengthen the analysis</h2><span class="when">Wed–Fri</span></div><p class="phase-note">The matched comparison answers the most likely reviewer objection.</p><ul><li data-id="p2a" data-blocking="1"><input type="checkbox" id="cb-p2a"><div class="item"><label for="cb-p2a">Add a matched same-competition comparison</label><p>AIME 2025 vs 2026, HMMT Feb 2025 vs 2026. Shows the control and measurement sets attract boilerplate at similar rates.</p><div class="tags"><span class="tag block">Blocking</span><span class="tag">§7</span></div></div></li><li data-id="p2b" data-blocking="0"><input type="checkbox" id="cb-p2b"><div class="item"><label for="cb-p2b">Rework §12 slice enrichment</label><p>Report enrichment on control flags too; explain why 72+26+70+3 = 171 &gt; 138; retitle (two slices are enriched); comment on Nemotron Code matching math items.</p><div class="tags"><span class="tag">§12</span></div></div></li><li data-id="p2c" data-blocking="0"><input type="checkbox" id="cb-p2c"><div class="item"><label for="cb-p2c">Fix cutoff margins</label><p>Count margins from the Nov 20, 2025 release (upper bound), not the estimated October closure. Justify Sept 2025 sets in the measurement pool.</p><div class="tags"><span class="tag">§4</span><span class="tag">§5</span></div></div></li><li data-id="p2d" data-blocking="0"><input type="checkbox" id="cb-p2d"><div class="item"><label for="cb-p2d">Fill setup gaps</label><p>Explain decon’s absence from Table 4 or add it; state the 100k sampling method and seed; separate documents from items in the decon sweep; note the 199/200 anecdote used the earlier 200-item set.</p><div class="tags"><span class="tag">§5</span><span class="tag">§6</span><span class="tag">Table 4</span></div></div></li><li data-id="p2e" data-blocking="0"><input type="checkbox" id="cb-p2e"><div class="item"><label for="cb-p2e">Add reused problems as a threat to validity</label><p>A 2026 problem can restate an older one; point to §4.1’s boilerplate finding.</p><div class="tags"><span class="tag">§4.1</span><span class="tag">§15</span></div></div></li><li data-id="p2f" data-blocking="1"><input type="checkbox" id="cb-p2f"><div class="item"><label for="cb-p2f">Run the matched comparison on Nemotron too</label><p>Same AIME and HMMT year pairs, so all three corpora report it.</p><div class="tags"><span class="tag block">Blocking</span><span class="tag">§7</span></div></div></li></ul></section><section><div class="phase-head"><h2>Positioning and related work</h2><span class="when">Thu–Fri</span></div><p class="phase-note">Sentences, not experiments.</p><ul><li data-id="p3a" data-blocking="0"><input type="checkbox" id="cb-p3a"><div class="item"><label for="cb-p3a">Explain why these five filters</label><p>They are the projects with public data and public filter code, covering the main filter families.</p><div class="tags"><span class="tag">§2</span><span class="tag">§5</span></div></div></li><li data-id="p3b" data-blocking="0"><input type="checkbox" id="cb-p3b"><div class="item"><label for="cb-p3b">State that the control needs a time gap</label><p>So it necessarily evaluates corpora that are not brand new.</p><div class="tags"><span class="tag">§4</span></div></div></li><li data-id="p3c" data-blocking="0"><input type="checkbox" id="cb-p3c"><div class="item"><label for="cb-p3c">Add a recent-practice paragraph citing Rufus-Air (2026)</label><p>Its kept pytest false positives support §10 outside math; cite in Limitations as well.</p><div class="tags"><span class="tag">§2</span><span class="tag">§15</span></div></div></li><li data-id="p3d" data-blocking="1"><input type="checkbox" id="cb-p3d"><div class="item"><label for="cb-p3d">Rewrite the paper for the larger filter set</label><p>Update “five filters” in the title-level claims, abstract, intro, §3 and conclusion; add the new filters to Table 1 with their sources (Rufus-Air, Nemotron, LMSYS); cite MegaScience as another LLM-based user.</p><div class="tags"><span class="tag block">Blocking</span><span class="tag">Abstract</span><span class="tag">§1</span><span class="tag">§3</span><span class="tag">Table 1</span></div></div></li><li data-id="p3g" data-blocking="1"><input type="checkbox" id="cb-p3g"><div class="item"><label for="cb-p3g">Rewrite the abstract and contributions around the new results</label><p>Say whether embedding and LLM filters escape the boilerplate problem, and report the third corpus replication.</p><div class="tags"><span class="tag block">Blocking</span><span class="tag">Abstract</span><span class="tag">§1</span></div></div></li><li data-id="p3h" data-blocking="1"><input type="checkbox" id="cb-p3h"><div class="item"><label for="cb-p3h">Check the 8-page limit after the additions</label><p>Move per-filter implementation details and extra sweeps to an appendix if needed.</p><div class="tags"><span class="tag block">Blocking</span></div></div></li><li data-id="p3e" data-blocking="0"><input type="checkbox" id="cb-p3e"><div class="item"><label for="cb-p3e">Cite MixtureVitae’s boilerplate filtering</label><p>Prior practice close to your fix; place near Recommendation 3.</p><div class="tags"><span class="tag">§13</span></div></div></li><li data-id="p3f" data-blocking="0"><input type="checkbox" id="cb-p3f"><div class="item"><label for="cb-p3f">Soften overclaims</label><p>“Every operating point” → the low-error region measured; note OpenThoughts3 drift 0.36→0.46; “roughly double” → 2.4–2.9×.</p><div class="tags"><span class="tag">§8</span><span class="tag">§11</span><span class="tag">§13</span></div></div></li></ul></section><section><div class="phase-head"><h2>Format and compliance</h2><span class="when">Sat–Sun</span></div><p class="phase-note">Mechanical, but each one is visible to reviewers.</p><ul><li data-id="p4a" data-blocking="1"><input type="checkbox" id="cb-p4a"><div class="item"><label for="cb-p4a">Fix the broken cross-reference</label><p>“§efsec:validate” in Limitations should be §4.1.</p><div class="tags"><span class="tag block">Blocking</span><span class="tag">§15</span></div></div></li><li data-id="p4b" data-blocking="1"><input type="checkbox" id="cb-p4b"><div class="item"><label for="cb-p4b">Move Limitations after the Conclusion</label><p>Unnumbered, so it doesn’t count toward the 8 pages. Recheck length.</p><div class="tags"><span class="tag block">Blocking</span></div></div></li><li data-id="p4c" data-blocking="0"><input type="checkbox" id="cb-p4c"><div class="item"><label for="cb-p4c">Fix bibliography accents</label><p>Jovanović, García, Dubiński.</p><div class="tags"><span class="tag">Refs</span></div></div></li><li data-id="p4d" data-blocking="0"><input type="checkbox" id="cb-p4d"><div class="item"><label for="cb-p4d">Correct the abstract’s method wording</label><p>decon was run from its released binary, not reimplemented.</p><div class="tags"><span class="tag">Abstract</span></div></div></li><li data-id="p4e" data-blocking="0"><input type="checkbox" id="cb-p4e"><div class="item"><label for="cb-p4e">Cut §14 to one sentence or move it to an appendix</label><p>Especially until the Table 2 mismatch is resolved.</p><div class="tags"><span class="tag">§14</span></div></div></li><li data-id="p4f" data-blocking="1"><input type="checkbox" id="cb-p4f"><div class="item"><label for="cb-p4f">Anonymize the release</label><p>“Will be released” or an anonymous repo link; scrub PDF metadata.</p><div class="tags"><span class="tag block">Blocking</span><span class="tag">§16</span></div></div></li><li data-id="p4g" data-blocking="1"><input type="checkbox" id="cb-p4g"><div class="item"><label for="cb-p4g">Regenerate everything with make paper from a clean checkout</label><p>Then spot-check every number in the abstract against the tables.</p><div class="tags"><span class="tag block">Blocking</span></div></div></li></ul></section><section><div class="phase-head"><h2>Submit</h2><span class="when">Sun–Mon Oct 12</span></div><p class="phase-note">Aim to submit a day early.</p><ul><li data-id="p5a" data-blocking="1"><input type="checkbox" id="cb-p5a"><div class="item"><label for="cb-p5a">Complete the Responsible NLP checklist</label><div class="tags"><span class="tag block">Blocking</span></div></div></li><li data-id="p5b" data-blocking="0"><input type="checkbox" id="cb-p5b"><div class="item"><label for="cb-p5b">Choose track, area and preferred venue</label></div></li><li data-id="p5c" data-blocking="0"><input type="checkbox" id="cb-p5c"><div class="item"><label for="cb-p5c">Upload anonymized supplementary code and control sets</label></div></li><li data-id="p5d" data-blocking="0"><input type="checkbox" id="cb-p5d"><div class="item"><label for="cb-p5d">Get one fresh read from a co-author or labmate</label><p>Ask them to check the abstract claims against the tables.</p></div></li><li data-id="p5e" data-blocking="1"><input type="checkbox" id="cb-p5e"><div class="item"><label for="cb-p5e">Submit and download the receipt PDF</label><p>Check the compiled PDF on OpenReview renders correctly.</p><div class="tags"><span class="tag block">Blocking</span></div></div></li></ul></section></div></main>
+
+  <footer>Deadline shown is the date you gave. Confirm the exact ARR cycle date and time zone on the ARR site before relying on the countdown.</footer>
+</div>
+
+<script>
+const PHASES = [
+  {
+    id: "p0", title: "Do today", when: "Tue Oct 6",
+    note: "Admin that can stall a submission if left late.",
+    items: [
+      ["p0a", "Confirm the exact ARR deadline, time zone and page limit", "Check the current ARR cycle page; make sure ACL is the venue it feeds.", ["block"]],
+      ["p0b", "Make sure every author has an active OpenReview profile", "New profiles without an institutional email can sit in moderation for days.", ["block"]],
+    ]
+  },
+  {
+    id: "p1", title: "Fix the numbers", when: "Tue–Wed",
+    note: "Reviewers will catch these. Do them before any new experiments.",
+    items: [
+      ["p1a", "Reconcile Table 2 with Table 3 and §11", "n≥8: Table 2 gives 91/25 items, s1 flags 127/36. n≥10: 5.8%/3.2% vs 7.2%/3.9% in §11. n=13: Table 2 implies ~0.26, §11 says 0.51. Find the stale pipeline or state the tokenization difference.", ["block", "Table 2", "§11"]],
+      ["p1b", "Define two metrics and use them everywhere", "FPR = control flags ÷ control items. Estimated false-discovery share = control rate ÷ measurement rate. Replace loose uses of “error”.", ["block"]],
+      ["p1c", "Rewrite the headline claim", "12.9% / 11.1% is the control FPR, not the share of output that is wrong (~half). Fix abstract, §6, conclusion.", ["block", "Abstract", "§6", "§16"]],
+      ["p1d", "Fix “the two filters that detect anything”", "Tülu 3 flags 6 items. Say “the two filters that flag more than a handful”.", ["block", "Abstract", "§16"]],
+      ["p1e", "Change “provably wrong” to “estimated” for measurement-set errors", "Only control flags are provably wrong.", ["block", "Fig. 1", "§8"]],
+      ["p1f", "Verify which filter Ai2 applied to Dolci SFT", "The Olmo 3 paper describes decon for midtraining data. Fix the Table 1 label if Dolci SFT used another tool.", ["block", "Table 1"]],
+    ]
+  },
+  {
+    id: "pn", title: "New corpus and newer filters", when: "Tue–Fri",
+    note: "The biggest jobs. Start the implementations in parallel with Phase 1 so runs can go overnight.",
+    items: [
+      ["pn1", "Get Nemotron 3 Nano post-training data and take a 100k sample", "Nemotron-Post-Training-v3 collection. Post-training cutoff Nov 28, 2025, so the existing 280-item 2026 control set applies unchanged. Record the sampling method and seed.", ["block", "§5", "§9"]],
+      ["pn2", "Check whether NVIDIA released its own decontamination code", "If it did, run it as-is like the other released filters. If not, implement it from the description and mark it prose-derived, as you did for Tülu 3.", ["block", "Table 1"]],
+      ["pn3", "Implement the Rufus-Air 2026 filter", "Word-level 8-grams, ~20 evenly spaced phrases per benchmark item, matched against lowercased text, flag at ≥50% of an item’s phrases. Also its exhaustive 8-gram variant for math.", ["block", "§3"]],
+      ["pn4", "Implement an embedding-similarity filter", "Follow Nemotron’s approach (Qwen3-Embedding-0.6B, cosine similarity to benchmark items). Sweep the threshold against the temporal control to get its precision/recall curve.", ["block", "§3", "§11"]],
+      ["pn5", "Implement an LLM-judge filter", "LMSYS llm-decontaminator style: embedding top-k candidates, then an LLM decides. Budget API cost by judging candidates only. Fix the judge model and prompt for reproducibility.", ["block", "§3"]],
+      ["pn6", "Run every filter on all three corpora", "Dolci, Tülu 3 math and Nemotron 3, against the measurement and control sets. Same 100k samples and bootstrap settings as the existing results.", ["block", "Table 3", "Table 4"]],
+      ["pn7", "Inspect the new filters’ control-set flags", "Check whether embedding and LLM false positives also trace to stock competition phrasing, or to something new. Extend §10 with what you find.", ["block", "§10"]],
+      ["pn8", "Add the new filters to Fig. 2", "Plot embedding and LLM-judge operating points on the same precision/recall frontier, with each project’s shipped default ringed.", ["block", "Fig. 2"]],
+    ]
+  },
+  {
+    id: "p2", title: "Strengthen the analysis", when: "Wed–Fri",
+    note: "The matched comparison answers the most likely reviewer objection.",
+    items: [
+      ["p2a", "Add a matched same-competition comparison", "AIME 2025 vs 2026, HMMT Feb 2025 vs 2026. Shows the control and measurement sets attract boilerplate at similar rates.", ["block", "§7"]],
+      ["p2b", "Rework §12 slice enrichment", "Report enrichment on control flags too; explain why 72+26+70+3 = 171 > 138; retitle (two slices are enriched); comment on Nemotron Code matching math items.", ["§12"]],
+      ["p2c", "Fix cutoff margins", "Count margins from the Nov 20, 2025 release (upper bound), not the estimated October closure. Justify Sept 2025 sets in the measurement pool.", ["§4", "§5"]],
+      ["p2d", "Fill setup gaps", "Explain decon’s absence from Table 4 or add it; state the 100k sampling method and seed; separate documents from items in the decon sweep; note the 199/200 anecdote used the earlier 200-item set.", ["§5", "§6", "Table 4"]],
+      ["p2e", "Add reused problems as a threat to validity", "A 2026 problem can restate an older one; point to §4.1’s boilerplate finding.", ["§4.1", "§15"]],
+      ["p2f", "Run the matched comparison on Nemotron too", "Same AIME and HMMT year pairs, so all three corpora report it.", ["block", "§7"]],
+    ]
+  },
+  {
+    id: "p3", title: "Positioning and related work", when: "Thu–Fri",
+    note: "Sentences, not experiments.",
+    items: [
+      ["p3a", "Explain why these five filters", "They are the projects with public data and public filter code, covering the main filter families.", ["§2", "§5"]],
+      ["p3b", "State that the control needs a time gap", "So it necessarily evaluates corpora that are not brand new.", ["§4"]],
+      ["p3c", "Add a recent-practice paragraph citing Rufus-Air (2026)", "Its kept pytest false positives support §10 outside math; cite in Limitations as well.", ["§2", "§15"]],
+      ["p3d", "Rewrite the paper for the larger filter set", "Update “five filters” in the title-level claims, abstract, intro, §3 and conclusion; add the new filters to Table 1 with their sources (Rufus-Air, Nemotron, LMSYS); cite MegaScience as another LLM-based user.", ["block", "Abstract", "§1", "§3", "Table 1"]],
+      ["p3g", "Rewrite the abstract and contributions around the new results", "Say whether embedding and LLM filters escape the boilerplate problem, and report the third corpus replication.", ["block", "Abstract", "§1"]],
+      ["p3h", "Check the 8-page limit after the additions", "Move per-filter implementation details and extra sweeps to an appendix if needed.", ["block"]],
+      ["p3e", "Cite MixtureVitae’s boilerplate filtering", "Prior practice close to your fix; place near Recommendation 3.", ["§13"]],
+      ["p3f", "Soften overclaims", "“Every operating point” → the low-error region measured; note OpenThoughts3 drift 0.36→0.46; “roughly double” → 2.4–2.9×.", ["§8", "§11", "§13"]],
+    ]
+  },
+  {
+    id: "p4", title: "Format and compliance", when: "Sat–Sun",
+    note: "Mechanical, but each one is visible to reviewers.",
+    items: [
+      ["p4a", "Fix the broken cross-reference", "“§efsec:validate” in Limitations should be §4.1.", ["block", "§15"]],
+      ["p4b", "Move Limitations after the Conclusion", "Unnumbered, so it doesn’t count toward the 8 pages. Recheck length.", ["block"]],
+      ["p4c", "Fix bibliography accents", "Jovanović, García, Dubiński.", ["Refs"]],
+      ["p4d", "Correct the abstract’s method wording", "decon was run from its released binary, not reimplemented.", ["Abstract"]],
+      ["p4e", "Cut §14 to one sentence or move it to an appendix", "Especially until the Table 2 mismatch is resolved.", ["§14"]],
+      ["p4f", "Anonymize the release", "“Will be released” or an anonymous repo link; scrub PDF metadata.", ["block", "§16"]],
+      ["p4g", "Regenerate everything with make paper from a clean checkout", "Then spot-check every number in the abstract against the tables.", ["block"]],
+    ]
+  },
+  {
+    id: "p5", title: "Submit", when: "Sun–Mon Oct 12",
+    note: "Aim to submit a day early.",
+    items: [
+      ["p5a", "Complete the Responsible NLP checklist", "", ["block"]],
+      ["p5b", "Choose track, area and preferred venue", "", []],
+      ["p5c", "Upload anonymized supplementary code and control sets", "", []],
+      ["p5d", "Get one fresh read from a co-author or labmate", "Ask them to check the abstract claims against the tables.", []],
+      ["p5e", "Submit and download the receipt PDF", "Check the compiled PDF on OpenReview renders correctly.", ["block"]],
+    ]
+  }
+];
+
+const KEY = "acl-decon-checklist-v1";
+let done = {};
+try { done = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { done = {}; }
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(done)); } catch (e) {} };
+
+const root = document.getElementById("phases");
+const frag = document.createDocumentFragment();
+const wrapMain = document.createElement("div");
+wrapMain.style.cssText = "display:flex;flex-direction:column;gap:28px";
+PHASES.forEach(ph => {
+  const sec = document.createElement("section");
+  sec.innerHTML = `<div class="phase-head"><h2>${ph.title}</h2><span class="when">${ph.when}</span></div>` +
+    (ph.note ? `<p class="phase-note">${ph.note}</p>` : "");
+  const ul = document.createElement("ul");
+  ph.items.forEach(([id, title, detail, tags]) => {
+    const li = document.createElement("li");
+    li.dataset.id = id;
+    const tagHtml = tags.map(t => {
+      if (t === "block") return `<span class="tag block">Blocking</span>`;
+      if (t === "opt") return `<span class="tag opt">Optional</span>`;
+      return `<span class="tag">${t}</span>`;
+    }).join("");
+    li.innerHTML = `<input type="checkbox" id="cb-${id}"><div class="item"><label for="cb-${id}">${title}</label>` +
+      (detail ? `<p>${detail}</p>` : "") + (tagHtml ? `<div class="tags">${tagHtml}</div>` : "") + `</div>`;
+    li.dataset.blocking = tags.includes("block") ? "1" : "0";
+    const cb = li.querySelector("input");
+    cb.checked = !!done[id];
+    li.classList.toggle("done", cb.checked);
+    cb.addEventListener("change", () => {
+      done[id] = cb.checked; if (!cb.checked) delete done[id];
+      li.classList.toggle("done", cb.checked); save(); update();
+    });
+    ul.appendChild(li);
+  });
+  sec.appendChild(ul);
+  wrapMain.appendChild(sec);
+});
+root.appendChild(wrapMain);
+
+function update() {
+  const all = [...document.querySelectorAll("li[data-id]")];
+  const n = all.filter(li => li.classList.contains("done")).length;
+  const blockLeft = all.filter(li => li.dataset.blocking === "1" && !li.classList.contains("done")).length;
+  document.getElementById("count").textContent = `${n} / ${all.length}`;
+  document.getElementById("blocking").textContent = blockLeft;
+  document.getElementById("bar").style.width = (all.length ? (100 * n / all.length) : 0) + "%";
+}
+
+function countdown() {
+  const deadline = Date.parse("2026-10-12T23:59:00-12:00");
+  const ms = deadline - Date.now();
+  const el = document.getElementById("days"), lab = document.getElementById("days-label");
+  if (ms <= 0) { el.textContent = "0"; lab.textContent = "deadline passed"; return; }
+  const days = ms / 86400000;
+  if (days < 1) { el.textContent = Math.floor(ms / 3600000) + "h"; lab.textContent = "left to Oct 12, 23:59 AoE"; }
+  else { el.textContent = days.toFixed(1); }
+}
+
+const hide = document.getElementById("hide");
+try { hide.checked = localStorage.getItem(KEY + "-hide") === "1"; } catch (e) {}
+document.body.classList.toggle("hide-done", hide.checked);
+hide.addEventListener("change", () => {
+  document.body.classList.toggle("hide-done", hide.checked);
+  try { localStorage.setItem(KEY + "-hide", hide.checked ? "1" : "0"); } catch (e) {}
+});
+
+const resetBtn = document.getElementById("reset"), confirmBox = document.getElementById("reset-confirm");
+resetBtn.addEventListener("click", () => { confirmBox.hidden = false; resetBtn.hidden = true; });
+document.getElementById("reset-no").addEventListener("click", () => { confirmBox.hidden = true; resetBtn.hidden = false; });
+document.getElementById("reset-yes").addEventListener("click", () => {
+  done = {}; save();
+  document.querySelectorAll("li[data-id]").forEach(li => { li.classList.remove("done"); li.querySelector("input").checked = false; });
+  confirmBox.hidden = true; resetBtn.hidden = false; update();
+});
+
+update(); countdown(); setInterval(countdown, 60000);
+</script>
+
+<mdn-eauwntommcom><template shadowrootmode="closed"><link rel="stylesheet" href="file:///C:/KSCoG7zomNj0ZZ4cKZ4Or2smEZp4Ny8Qyiy03dQLigcChqCd3eVTyth1X3JfVfdnfCmsa014K1u142mq8OQhLvPDJSU7gEqQLGD8pj0Euh9R7_4XS_JUJdCY5y0fTzsZDmOJnrV6u5ShN40PL1I4vlcQLVEy5SjFSsTwagcqENsx6ItKnHFbmVhoFAq0nV9CDtytu0bt3AFUXYUfhOc0Xp6S1Zo3Rx7QGLDXoq_NG8lrDiwRqa_bFPWhABoUqFu1LrZ9vi7RwArdZzcQ8BooxRCUV6oqM0FhO-xyHyFLQJf0tHA0C4-b-9aPtqI9v3UjMGwe3FjEJpRmAJXJbhrUyidAkjiEm4SoB0m04RhMopOXcwx3RkzCo1vXu6gRdtc2RU8Wbq7FX8mB9UjrSA"></template></mdn-eauwntommcom></body></html>

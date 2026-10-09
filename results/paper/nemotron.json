@@ -1,0 +1,36 @@
+{
+ "corpus": "Nemotron-SFT-Math-v4",
+ "docs": 100000,
+ "n_measure": 680,
+ "n_control": 261,
+ "filters": {
+  "s1-8gram-word": {
+   "detect": 15.441176470588236,
+   "fp": 5.363984674329502,
+   "n_detect": 105,
+   "n_fp": 14,
+   "fd_share": 0.34738186462324394
+  },
+  "ot3-13gram-qwen": {
+   "detect": 23.823529411764707,
+   "fp": 16.091954022988507,
+   "n_detect": 162,
+   "n_fp": 42,
+   "fd_share": 0.6754647367674188
+  },
+  "ot114k-fuzz95": {
+   "detect": 0.0,
+   "fp": 0.0,
+   "n_detect": 0,
+   "n_fp": 0,
+   "fd_share": null
+  },
+  "tulu3-8gram-50pct": {
+   "detect": 0.14705882352941177,
+   "fp": 0.0,
+   "n_detect": 1,
+   "n_fp": 0,
+   "fd_share": 0.0
+  }
+ }
+}
