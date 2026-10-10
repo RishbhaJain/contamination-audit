@@ -1,8 +1,10 @@
-"""
-contamination_audit — detect MATH-500 leakage in open reasoning-model post-training
-datasets and measure benchmark inflation via a difference-in-differences framework.
+"""contamination_audit -- label-free measurement of decontamination filter error.
 
-See the paper at paper/Final_submission_ANLP_Sp26.pdf for context.
+Reimplements published decontamination filters and runs them against benchmarks
+that postdate the corpus under test. A flag against such a benchmark is provably
+a false positive, which makes filter error measurable without annotation.
+
+Entry points are the numbered scripts in ``scripts/``; see the README.
 """
 
-__version__ = "0.1.0"
+__version__ = "1.0.0"

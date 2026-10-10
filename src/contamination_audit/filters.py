@@ -11,14 +11,20 @@ outputs are directly comparable.
 
 from __future__ import annotations
 
+import functools
 import re
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
+from typing import TypeVar
+
+# A token is a word or a model token id; the filters never need to know which.
+Token = TypeVar("Token", str, int)
 
 _SPLIT_ALNUM = re.compile(r"[^a-z0-9]+")
 
 
 # ---------------------------------------------------------------- tokenizers
+
 
 def tok_s1(text: str) -> list[str]:
     """simplescaling/s1 data/decontaminate_util.py: normalize_string + word_ngrams."""
@@ -33,144 +39,130 @@ def tok_alnum(text: str) -> list[str]:
     return [t for t in _SPLIT_ALNUM.split(text.lower()) if t]
 
 
+# Cached: the registry's filters look their tokenizer up on every call, and
+# loading a HuggingFace tokenizer takes about a second.
+@functools.cache
 def _hf_tokenizer(name: str) -> Callable[[str], list[int]]:
     from transformers import AutoTokenizer
+
     tk = AutoTokenizer.from_pretrained(name)
     return lambda text: tk.encode(text, add_special_tokens=False)
 
 
+@functools.cache
 def _tiktoken(encoding: str) -> Callable[[str], list[int]]:
     import tiktoken
+
     enc = tiktoken.get_encoding(encoding)
     return lambda text: enc.encode(text)
 
 
+def tok_qwen(text: str) -> list[int]:
+    """OpenThoughts3's tokenizer. Loaded on first call, not at import."""
+    return _hf_tokenizer("Qwen/Qwen2-7B-Instruct")(text)
+
+
+def tok_cl100k(text: str) -> list[int]:
+    """decon's tokenizer. Loaded on first call, not at import."""
+    return _tiktoken("cl100k_base")(text)
+
+
 # ---------------------------------------------------------------- primitives
 
-def ngrams(tokens: Iterable, n: int) -> set[tuple]:
-    toks = list(tokens)
-    if len(toks) < n:
+
+def ngrams(tokens: Sequence[Token], n: int) -> set[tuple[Token, ...]]:
+    """Distinct n-grams, over word strings or over model token ids alike.
+
+    Nothing downstream cares which, so the filters differ only in the tokenizer
+    they are handed. That is the axis the paper measures.
+    """
+    if len(tokens) < n:
         return set()
-    return {tuple(toks[i:i + n]) for i in range(len(toks) - n + 1)}
+    return {tuple(tokens[i : i + n]) for i in range(len(tokens) - n + 1)}
 
 
-def flag_by_ngram(corpus: list[str], bench: list[str], n: int,
-                  tokenize: Callable) -> set[int]:
+def flag_by_ngram(
+    corpus: list[str], bench: list[str], n: int, tokenize: Callable
+) -> set[int]:
     """Any shared n-gram flags the benchmark item. Mirrors s1's lookup design:
     index the benchmark once, then stream the corpus."""
     lookup: dict[tuple, set[int]] = {}
-    for j, text in enumerate(bench):
-        for g in ngrams(tokenize(text), n):
-            lookup.setdefault(g, set()).add(j)
+    for item, text in enumerate(bench):
+        for gram in ngrams(tokenize(text), n):
+            lookup.setdefault(gram, set()).add(item)
 
     flagged: set[int] = set()
     for text in corpus:
         if not text.strip():
             continue
-        for g in ngrams(tokenize(text), n):
-            hit = lookup.get(g)
+        for gram in ngrams(tokenize(text), n):
+            hit = lookup.get(gram)
             if hit:
                 flagged |= hit
     return flagged
 
 
 def flag_by_fuzz(corpus: list[str], bench: list[str], threshold: float) -> set[int]:
-    """OpenThoughts-114K: process.extract(scorer=fuzz.ratio, score_cutoff=...)."""
+    """OpenThoughts-114K: process.extract(scorer=fuzz.ratio, score_cutoff=...).
+
+    cdist does the work in C; reduce over the corpus axis in numpy rather than
+    walking the matrix cell by cell, which at 100k x 800 is 80M interpreter steps
+    to find a handful of hits.
+    """
+    import numpy as np
     from rapidfuzz import fuzz, process
-    mat = process.cdist(corpus, bench, scorer=fuzz.ratio,
-                        score_cutoff=threshold, workers=-1)
-    return {j for i in range(mat.shape[0]) for j in range(mat.shape[1])
-            if mat[i][j] >= threshold}
+
+    scores = process.cdist(
+        corpus, bench, scorer=fuzz.ratio, score_cutoff=threshold, workers=-1
+    )
+    best_per_item = np.asarray(scores).max(axis=0)
+    return set(np.flatnonzero(best_per_item >= threshold).tolist())
 
 
-def flag_by_coverage(corpus: list[str], bench: list[str], n: int,
-                     coverage: float, tokenize: Callable) -> set[int]:
-    """Tulu 3: fraction of benchmark tokens covered by shared n-grams."""
-    bench_toks = [tokenize(t) for t in bench]
-    bench_grams = [ngrams(t, n) for t in bench_toks]
-    covered: list[set[int]] = [set() for _ in bench]
+def flag_by_coverage(
+    corpus: list[str], bench: list[str], n: int, coverage: float, tokenize: Callable
+) -> set[int]:
+    """Tulu 3: fraction of a benchmark item's tokens covered by shared n-grams.
 
+    Indexed the same way as `flag_by_ngram`. The obvious version compares every
+    corpus document against every benchmark item and then re-scans the item to
+    find where the match landed; that is quadratic in the wrong places and took
+    roughly 400s on a 334k-document corpus. Precomputing each n-gram's token span
+    once makes a corpus document cost only the spans it actually hits.
+    """
+    bench_tokens = [tokenize(t) for t in bench]
+
+    # n-gram -> {(item, first token index)}, so a hit maps straight to a span.
+    lookup: dict[tuple, set[tuple[int, int]]] = {}
+    for item, tokens in enumerate(bench_tokens):
+        for position in range(len(tokens) - n + 1):
+            gram = tuple(tokens[position : position + n])
+            lookup.setdefault(gram, set()).add((item, position))
+
+    covered: dict[int, set[int]] = {}
     for text in corpus:
         if not text.strip():
             continue
-        cg = ngrams(tokenize(text), n)
-        if not cg:
-            continue
-        for j, bg in enumerate(bench_grams):
-            shared = bg & cg
-            if not shared:
-                continue
-            toks = bench_toks[j]
-            for i in range(len(toks) - n + 1):
-                if tuple(toks[i:i + n]) in shared:
-                    covered[j].update(range(i, i + n))
+        for gram in ngrams(tokenize(text), n):
+            for item, position in lookup.get(gram, ()):
+                covered.setdefault(item, set()).update(range(position, position + n))
 
-    return {j for j in range(len(bench))
-            if bench_toks[j] and len(covered[j]) / len(bench_toks[j]) > coverage}
+    return {
+        item
+        for item, marked in covered.items()
+        if bench_tokens[item] and len(marked) / len(bench_tokens[item]) > coverage
+    }
 
 
-# ---------------------------------------------------------------- the registry
-
-@dataclass(frozen=True)
-class DecontaminationFilter:
-    name: str
-    project: str
-    provenance: str          # "code" if parameters are defaults in released source
-    description: str
-    run: Callable[[list[str], list[str]], set[int]]
-    faithful: bool = True    # False = partial reimplementation, NOT comparable
-
-
-def registry(include_partial: bool = False) -> list[DecontaminationFilter]:
-    """Faithful filters only by default.
-
-    A partial reimplementation must never sit in a comparison table beside complete
-    ones: its number would be read as that project's behaviour. Opting in is
-    deliberate and its output is for diagnosis, not for reporting.
-    """
-    all_filters = [
-        DecontaminationFilter(
-            "s1-8gram-word", "s1", "code",
-            "any shared 8-gram over lowercased whitespace tokens",
-            lambda c, b: flag_by_ngram(c, b, 8, tok_s1),
-        ),
-        DecontaminationFilter(
-            "ot3-13gram-qwen", "OpenThoughts3", "code",
-            "any shared 13-gram over Qwen/Qwen2-7B-Instruct tokens",
-            lambda c, b: flag_by_ngram(c, b, 13, _hf_tokenizer("Qwen/Qwen2-7B-Instruct")),
-        ),
-        DecontaminationFilter(
-            "ot114k-fuzz95", "OpenThoughts-114K", "code",
-            "rapidfuzz fuzz.ratio >= 95 on raw strings",
-            lambda c, b: flag_by_fuzz(c, b, 95.0),
-        ),
-        DecontaminationFilter(
-            "PARTIAL-cl100k-5gram-candidates-only", "NOT decon", "code",
-            "decon's candidate-generation stage ONLY: any shared 5-gram over cl100k "
-            "tokens. decon then applies cluster expansion and a weighted score gated "
-            "at contamination_score_threshold=0.8 (Olmo 3 Appendix A.5), which is not "
-            "implemented here. MEASURED: on 100k Dolci questions this flags 199/200 "
-            "OlymMATH items; the real decon v0.3.0 binary on the same input flags 0. "
-            "The approximation inverts the result. Kept only as a worked example that "
-            "a two-stage filter cannot be approximated by its first stage. To measure "
-            "decon, build github.com/allenai/decon and run `decon detect`.",
-            lambda c, b: flag_by_ngram(c, b, 5, _tiktoken("cl100k_base")),
-            faithful=False,
-        ),
-        DecontaminationFilter(
-            "tulu3-8gram-50pct", "Tulu 3", "prose",
-            "8-gram, >50% benchmark-token coverage -- values from the paper only; "
-            "the released code declares no defaults for either",
-            lambda c, b: flag_by_coverage(c, b, 8, 0.5, tok_whitespace),
-        ),
-    ]
-    return all_filters if include_partial else [f for f in all_filters if f.faithful]
-
-
-def flag_by_sampled_phrases(corpus: list[str], bench: list[str], n: int = 8,
-                            n_phrases: int = 20, frac: float = 0.5,
-                            tokenize: Callable = tok_s1,
-                            exhaustive: bool = False) -> set[int]:
+def flag_by_sampled_phrases(
+    corpus: list[str],
+    bench: list[str],
+    n: int = 8,
+    n_phrases: int = 20,
+    frac: float = 0.5,
+    tokenize: Callable = tok_s1,
+    exhaustive: bool = False,
+) -> set[int]:
     """Rufus-Air style: require a fraction of an item's phrases to be present.
 
     Rather than firing on any single shared n-gram, this samples roughly
@@ -182,10 +174,10 @@ def flag_by_sampled_phrases(corpus: list[str], bench: list[str], n: int = 8,
     `exhaustive=True` uses every n-gram instead of a sample, the variant reported
     for mathematics.
     """
-    # phrase -> set of (item index, phrase index)
+    # phrase -> {(benchmark item, which of that item's phrases this is)}
     lookup: dict[tuple, set[tuple[int, int]]] = {}
     n_sampled: list[int] = []
-    for j, text in enumerate(bench):
+    for item, text in enumerate(bench):
         grams = sorted(ngrams(tokenize(text), n))
         if not grams:
             n_sampled.append(0)
@@ -193,19 +185,93 @@ def flag_by_sampled_phrases(corpus: list[str], bench: list[str], n: int = 8,
         if exhaustive or len(grams) <= n_phrases:
             picked = grams
         else:
+            # Evenly spaced rather than contiguous: the phrases have to be
+            # spread through the item for their agreement to mean anything.
             step = len(grams) / n_phrases
             picked = [grams[int(i * step)] for i in range(n_phrases)]
         n_sampled.append(len(picked))
-        for k, g in enumerate(picked):
-            lookup.setdefault(g, set()).add((j, k))
+        for position, gram in enumerate(picked):
+            lookup.setdefault(gram, set()).add((item, position))
 
-    seen: dict[int, set[int]] = {}
+    found: dict[int, set[int]] = {}
     for text in corpus:
         if not text.strip():
             continue
-        for g in ngrams(tokenize(text), n):
-            for j, k in lookup.get(g, ()):
-                seen.setdefault(j, set()).add(k)
+        for gram in ngrams(tokenize(text), n):
+            for item, position in lookup.get(gram, ()):
+                found.setdefault(item, set()).add(position)
 
-    return {j for j, ks in seen.items()
-            if n_sampled[j] and len(ks) / n_sampled[j] >= frac}
+    return {
+        item
+        for item, positions in found.items()
+        if n_sampled[item] and len(positions) / n_sampled[item] >= frac
+    }
+
+
+# ---------------------------------------------------------------- the registry
+
+
+@dataclass(frozen=True)
+class DecontaminationFilter:
+    name: str
+    project: str
+    provenance: str  # "code" if parameters are defaults in released source
+    description: str
+    run: Callable[[list[str], list[str]], set[int]]
+    faithful: bool = True  # False = partial reimplementation, NOT comparable
+
+
+def registry(include_partial: bool = False) -> list[DecontaminationFilter]:
+    """Faithful filters only by default.
+
+    A partial reimplementation must never sit in a comparison table beside complete
+    ones: its number would be read as that project's behaviour. Opting in is
+    deliberate and its output is for diagnosis, not for reporting.
+    """
+    all_filters = [
+        DecontaminationFilter(
+            "s1-8gram-word",
+            "s1",
+            "code",
+            "any shared 8-gram over lowercased whitespace tokens",
+            lambda c, b: flag_by_ngram(c, b, 8, tok_s1),
+        ),
+        DecontaminationFilter(
+            "ot3-13gram-qwen",
+            "OpenThoughts3",
+            "code",
+            "any shared 13-gram over Qwen/Qwen2-7B-Instruct tokens",
+            lambda c, b: flag_by_ngram(c, b, 13, tok_qwen),
+        ),
+        DecontaminationFilter(
+            "ot114k-fuzz95",
+            "OpenThoughts-114K",
+            "code",
+            "rapidfuzz fuzz.ratio >= 95 on raw strings",
+            lambda c, b: flag_by_fuzz(c, b, 95.0),
+        ),
+        DecontaminationFilter(
+            "PARTIAL-cl100k-5gram-candidates-only",
+            "NOT decon",
+            "code",
+            "decon's candidate-generation stage ONLY: any shared 5-gram over cl100k "
+            "tokens. decon then applies cluster expansion and a weighted score gated "
+            "at contamination_score_threshold=0.8 (Olmo 3 Appendix A.5), which is not "
+            "implemented here. MEASURED: on 100k Dolci questions this flags 199/200 "
+            "OlymMATH items; the real decon v0.3.0 binary on the same input flags 0. "
+            "The approximation inverts the result. Kept only as a worked example that "
+            "a two-stage filter cannot be approximated by its first stage. To measure "
+            "decon, build github.com/allenai/decon and run `decon detect`.",
+            lambda c, b: flag_by_ngram(c, b, 5, tok_cl100k),
+            faithful=False,
+        ),
+        DecontaminationFilter(
+            "tulu3-8gram-50pct",
+            "Tulu 3",
+            "prose",
+            "8-gram, >50% benchmark-token coverage -- values from the paper only; "
+            "the released code declares no defaults for either",
+            lambda c, b: flag_by_coverage(c, b, 8, 0.5, tok_whitespace),
+        ),
+    ]
+    return all_filters if include_partial else [f for f in all_filters if f.faithful]

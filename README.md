@@ -1,168 +1,101 @@
-# Contamination Audit
+# Decontaminated by Whose Standard?
 
-Detection and audit tooling for benchmark contamination in open post-training
-corpora (s1K, the Tülu 3 SFT mixture, OpenThoughts-114K) against MATH-500.
+Code and data for the paper *Decontaminated by Whose Standard? Label-Free
+Measurement of Decontamination Filter Error*.
 
-**Artifact.** See [`ARTIFACT.md`](ARTIFACT.md) for how to reproduce the paper
-(`make paper`). The filter reimplementations are in
-`src/contamination_audit/filters.py`; the temporal control benchmark sets are
-`data/raw/bench_{measure,control}.jsonl`.
+The paper runs several published benchmark-decontamination filters over the same
+training corpora and benchmarks, and measures how far they disagree. It also
+introduces a label-free way to measure a filter's false-positive rate: a
+benchmark published *after* a corpus was assembled cannot be in it, so any flag
+against such an item is an error that needs no annotation to identify.
 
-**Current direction.** The project is being rewritten around a different claim: that
-published decontamination descriptions underdetermine their own implementations, so a
-third party cannot verify them. Varying only parameters no specification states — above
-all the tokenizer — changes the count of flagged MATH-500 items by up to 11.6x, and the
-flagged *sets* overlap at Jaccard 0.08-0.22. See `docs/` and the findings log.
+Everything here runs on CPU. There is no model inference, no GPU requirement and
+no API key anywhere in the pipeline.
 
-**On the prior submission.** An earlier draft (Demarteau, Jain, Ngetich · ANLP Sp26) is
-preserved as a PDF below. Several of its claims did not survive re-analysis and must not
-be reused: the reported `judge_precision` figures are the LLM judge's yes-rate, not
-precision measured against human labels; the Cohen's kappa of 0.83 is not computed
-anywhere in this repository; the clean/contaminated splits are not matched by
-subject and level as stated; and the behavioural results rest on a run whose clean-split
-accuracy is 0.00-0.10, which indicates a broken answer-extraction harness rather than a
-null effect. Treat the PDF as a record of what was submitted, not as current findings.
+## Layout
 
-The full PDF is at [`paper/Final_submission_ANLP_Sp26.pdf`](paper/Final_submission_ANLP_Sp26.pdf).
+| Path | What it holds |
+|---|---|
+| `src/contamination_audit/filters.py` | the filter implementations, one per published project |
+| `scripts/01_prepare_data.py` | fetches corpora and benchmark groups from HuggingFace |
+| `scripts/02_results.py` | regenerates every number the paper reports |
+| `scripts/03_run_decon.py` | wrapper for Ai2's `decon` (a separate Rust binary) |
+| `scripts/04_verify_numbers.py` | checks the paper's text against the regenerated JSON |
+| `scripts/05_figures.py` | redraws Figures 1 and 2 from the regenerated JSON |
+| `data/raw/bench_*.jsonl` | the benchmark groups (committed; small) |
+| `results/paper/*.json` | regenerated results, one file per paper section |
+| `tests/` | unit tests for the filters |
 
-## Repository layout
+## The two benchmark groups
 
-```
-.
-├── src/contamination_audit/   # importable library (no CLI logic)
-│   ├── ngram.py, tfidf.py, embedding.py   # stage-2 retrieval (paper §5.1 — per-project method)
-│   ├── judge.py                            # multi-provider LLM judge (OpenAI, Vertex/Gemini, ...)
-│   ├── inference.py                        # HF transformers DiD driver (paper §5.3)
-│   ├── did.py, null_rate.py,               # paper Tables 4-7 + Figures 1-2
-│   ├── cot_features.py, recitation.py,
-│   ├── stats.py, answer_extract.py
-│   └── prompts/                            # judge_default, judge_strict, judge_tulu, ...
-├── scripts/                   # numbered entry points (one per pipeline stage)
-├── configs/                   # datasets.yaml, thresholds.yaml, models.yaml
-├── data/
-│   ├── raw/                   # downloaded datasets (gitignored — regenerable from HF)
-│   └── processed/             # C_lex / C_sem sets, perturbations, clean baseline, annotations
-├── results/
-│   ├── ngram/, embeddings/,   # stage-1/2/3 bulk outputs (gitignored)
-│   │   judge/, traces/
-│   ├── tables/                # paper tables 2-7 as CSV (tracked)
-│   ├── figures/               # paper figures (tracked)
-│   └── annotations/           # manual-validation worksheets (tracked)
-├── notebooks/                 # canonical analysis + inference notebooks + exploratory probes
-├── paper/                     # LaTeX source + final PDF
-└── tests/                     # pytest suite (22 tests)
-```
+This split is the paper's method, and it is defined in `scripts/01_prepare_data.py`.
 
-## Setup
+- **Measurement**: benchmarks published *before* the corpus was assembled. A flag
+  here may be correct or incorrect.
+- **Control**: benchmarks published *after*. These cannot be in the corpus, so
+  every flag against them is a false positive by construction.
 
-Requires Python ≥ 3.10. Inference uses a single NVIDIA RTX PRO 6000 Blackwell (102 GB VRAM, bf16); detection stages run on CPU.
+The split is a function of the corpus, not a fixed list. Each corpus in the paper
+gets its own, derived from its release date: a benchmark that is a control for one
+corpus can be a measurement item for a later one.
+
+## Reproducing
 
 ```bash
-python -m venv venv
-venv\Scripts\activate                 # on Windows; or: source venv/bin/activate
-pip install -e .                      # installs contamination_audit + deps
-cp .env.example .env                  # fill in OPENAI_API_KEY (and optionally GOOGLE_CLOUD_PROJECT for Vertex)
+pip install -e .
+make data        # streams the corpora; slow, and resumable if a connection drops
+make results     # regenerates results/paper/*.json and prints each figure
+make figures
+make verify      # confirms the paper's numbers match the regenerated JSON
+make test
 ```
 
-## Reproducing the paper
+`make results` prints each number in the form the paper states it, so the two can
+be diffed directly. Individual sections:
 
 ```bash
-make all
+python scripts/02_results.py --stage main        # the main comparison table
+python scripts/02_results.py --stage validate    # tests the control assumption
+python scripts/02_results.py --stage scaling     # Figure 1 (slowest, ~25 min)
+python scripts/02_results.py --stage tuning      # Figure 2
+python scripts/02_results.py --stage phrases     # Table 5, phrase agreement
+python scripts/02_results.py --stage matched     # matched competition pairs
+python scripts/02_results.py --stage nemotron    # third corpus
 ```
 
-Or step-by-step:
+`--help` lists all eleven stages. Without `make`, the targets above are just the
+five numbered scripts, run in order.
+
+### decon
+
+Ai2's `decon` is deliberately **not** reimplemented here. Build and run the real one:
 
 ```bash
-python scripts/00_load_datasets.py
-python scripts/01_ngram_filter.py
-python scripts/02_semantic_retrieval.py            # dense (s1/OT) or TF-IDF (Tulu), auto per config
-python scripts/03_llm_judge.py                     # OpenAI or Vertex/Gemini per project
-python scripts/04_build_clean_set.py
-python scripts/05_validate_and_report.py --crosscheck
-
-# Behavioral stages (require GPU)
-python scripts/06_generate_perturbations.py        # stub — see notebooks/temperature_variance.ipynb
-python scripts/07_run_inference.py                 # OpenThinker-7B, Tulu-3-8B-SFT, s1.1-7B
-python scripts/08_score_answers.py results/traces/openthoughts_traces.jsonl
-python scripts/08_score_answers.py results/traces/tulu_traces.jsonl
-python scripts/08_score_answers.py results/traces/s1_traces.jsonl
-
-# Analysis (no GPU)
-python scripts/09_compute_did.py                   # Tables 4 + 5
-python scripts/10_compute_null_rate.py             # Table 6 + Figure 1
-python scripts/11_cot_features.py                  # Table 7 + Figure 2
-python scripts/12_robustness_checks.py             # failure_mode + tulu_sources + n-gram sweep
-python scripts/13_build_annotation_csv.py
-python scripts/14_recitation_analysis.py           # §7.2 shortcut-vs-recall breakdown
-python scripts/99_make_pipeline_figure.py
+git clone https://github.com/allenai/decon && cd decon && cargo build --release
+cd - && make decon DECON_BIN=decon/target/release/decon
 ```
 
-## Paper-to-script map
+This matters. An earlier attempt reproduced only its candidate-generation stage —
+any shared 5-gram over `cl100k` tokens, without the cluster expansion and weighted
+scoring — and that version flagged 199 of 200 items where the real binary flags 0.
+A two-stage filter cannot be approximated by its first stage. The registry marks
+partial implementations `faithful=False` and excludes them from comparisons.
 
-| Paper artifact | Producing script | Output file |
-|---|---|---|
-| Table 1 (eval set composition) | `scripts/05_validate_and_report.py` | `results/tables/table2_contamination_counts.csv` (derived) |
-| Table 2 (contamination counts) | `scripts/05_validate_and_report.py` | `results/tables/table2_contamination_counts.csv` |
-| Table 3 (model configs) | static | `configs/models.yaml` |
-| Table 4 (accuracy by split/perturbation) | `scripts/09_compute_did.py` | `results/tables/table4_accuracy.csv` |
-| Table 5 (DiD estimates) | `scripts/09_compute_did.py` | `results/tables/table5_did.csv` |
-| Table 6 (null rates) | `scripts/10_compute_null_rate.py` | `results/tables/table6_null_rate.csv` |
-| Table 7 (CoT features) | `scripts/11_cot_features.py` | `results/tables/table7_cot_features.csv` |
-| §7.2 recitation breakdown | `scripts/14_recitation_analysis.py` | `results/tables/table_recitation.csv` |
-| Failure-mode comparison | `scripts/12_robustness_checks.py --check failure_mode` | `results/tables/failure_mode_comparison.csv` |
-| Tülu source breakdown | `scripts/12_robustness_checks.py --check tulu_sources` | `results/tables/tulu_source_breakdown.csv` |
-| n-gram robustness sweep (n=15, n=20) | `scripts/12_robustness_checks.py --check ngram_sweep` | `results/tables/robustness_ngram_sweep.csv` |
-| Figure 1 (null rate bars) | `scripts/10_compute_null_rate.py` | `results/figures/figure1_null_rates.png` |
-| Figure 2 (CoT distributions) | `scripts/11_cot_features.py` | `results/figures/figure2_cot_distributions.png` |
-| Cohen's d heatmap | `scripts/11_cot_features.py` | `results/figures/figure2b_cohens_d.png` |
-| Pipeline figure | `scripts/99_make_pipeline_figure.py` | `results/figures/pipeline_figure.png` |
-| Cross-check (caught-by-both vs semantic-only) | `scripts/05_validate_and_report.py --crosscheck` | `results/tables/crosscheck.csv` |
-| Annotation worksheet (C_sem) | `scripts/13_build_annotation_csv.py` | `results/annotations/csem_annotation.csv` |
+## Notes on reproduction
 
-Every numbered script has a matching notebook in `notebooks/` — see [`notebooks/README.md`](notebooks/README.md). When the script and notebook disagree, the notebook is canonical.
+- **Streaming is flaky.** `scripts/01_prepare_data.py` resumes by skipping rows
+  already on disk; rerun it if a pull drops.
+- **Corpus order matters.** Every scaling point takes the first *N* rows of the
+  corpus file, so a partial pull shifts every number. Complete the pull before
+  comparing against the paper.
+- **Runtimes are single-threaded Python.** Model tokenizers dominate; the largest
+  scaling point takes roughly 25 minutes.
+- **Determinism.** Bootstrapping is seeded, the filters are deterministic, and no
+  LLM is called anywhere. Where a stage reports an example n-gram it ties-breaks
+  lexicographically, because set iteration order varies with `PYTHONHASHSEED`.
+- **Figures read the JSON.** Both figures are drawn from `results/paper/*.json`
+  rather than transcribed constants, so they cannot drift from the tables.
 
-## Stage-2 retrieval (per paper §5.1)
+## Licence
 
-The retrieval method is selected per project in `configs/thresholds.yaml`:
-
-| Project | Method | Rationale |
-|---|---|---|
-| s1, OpenThoughts | Dense (`all-mpnet-base-v2` + FAISS, sim ≥ 0.70) | Captures paraphrase + topical similarity |
-| Tülu 3 | TF-IDF (char-ngrams 3–5, density-aware top-K) | Sharper on LaTeX-heavy competition math; teammate src/02 baseline |
-
-## LLM judges (per paper §5.1)
-
-| Project | Default judge | Prompt | Provider |
-|---|---|---|---|
-| s1, OpenThoughts | GPT-4o-mini | `judge_default` | OpenAI |
-| Tülu 3 | Gemini 2.5 Flash | `judge_tulu` (instance/template/clean) | Vertex AI |
-
-Other providers wired up under `judges:` and `JudgeConfig.provider`: `openai`, `google` (AI Studio), `vertex`, `openai_compat` (Groq, Cerebras, DeepInfra, NVIDIA NIM).
-
-## ⚠ Open question for co-authors
-
-The paper §5.4 specifies **GPT-4o-mini** as the answer-equivalence re-judge that produced Tables 3–4. The teammate `src/06_llm_judge_correctness.py` (canonical source) uses **Vertex/Gemini 2.5 Flash** by default. Before publication, confirm with Rishbha + Victor which judge actually produced the numbers in the submitted PDF. Both are wired up under `configs/models.yaml > answer_judges`.
-
-## Configuration
-
-All hyperparameters live in `configs/thresholds.yaml`:
-
-- N-gram size + threshold mode per project (s1: 8/any, Tülu: 8/percent50, OpenThoughts: 13/any)
-- Retrieval method per project (dense vs TF-IDF)
-- Embedding model, similarity threshold (0.70), top-K (5)
-- Per-judge config (provider, model, retries, temperature, rate limit) — `judges.default`, `judges.strict`, `judges.tulu`
-- Bootstrap iterations (10,000) and seed (42)
-
-The dataset registry lives in `configs/datasets.yaml`; the model registry in `configs/models.yaml`.
-
-## Tests
-
-```bash
-pytest tests/
-```
-
-22 tests cover the silent-failure paths most likely to break a paper number: n-gram extraction + coverage, FAISS retrieval determinism, judge JSON parsing (incl. regex fallback for malformed LaTeX-laden responses), and `\boxed{}` answer extraction + equivalence.
-
-## License
-
-MIT — see [LICENSE](LICENSE).
+MIT, see `LICENSE`.
